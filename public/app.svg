@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="104mm" height="104mm" viewBox="0 0 104 104" version="1.1">
+<g transform="translate(-29,-68)">
+ <rect style="font-variation-settings:'wght' 400;fill:#24221c;stroke-width:2;stroke-linecap:square;paint-order:markers fill stroke" width="104" height="104" x="29" y="68" ry="0"/>
+ <rect style="font-variation-settings:'wght' 400;fill:#5aa02c;stroke-width:3;stroke-linecap:square;paint-order:markers fill stroke" width="28" height="28" x="34" y="72" ry="0"/>
+ <rect style="font-variation-settings:'wght' 400;fill:#666;stroke-width:3;stroke-linecap:square;paint-order:markers fill stroke" width="28" height="28" x="67" y="72" ry="0"/>
+ <rect style="font-variation-settings:'wght' 400;fill:#666;stroke-width:3;stroke-linecap:square;paint-order:markers fill stroke" width="28" height="28" x="34" y="106" ry="0"/>
+ <rect style="font-variation-settings:'wght' 400;fill:#666;stroke-width:3;stroke-linecap:square;paint-order:markers fill stroke" width="28" height="28" x="67" y="106" ry="0"/>
+ <rect style="font-variation-settings:'wght' 400;fill:#666;stroke-width:3;stroke-linecap:square;paint-order:markers fill stroke" width="28" height="28" x="34" y="140" ry="0"/>
+</g>
+</svg>

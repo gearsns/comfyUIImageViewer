@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/app.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComfyUI Image Viewer</title>
+</head>
+
+<body>
+  <header class="app-header">
+    <h1>ComfyUI Image Viewer</h1>
+    <div class="address-bar-container" id="addressBar">
+      <!-- パンくず表示（通常時） -->
+      <ul class="breadcrumb-list" id="breadcrumbList"></ul>
+      <!-- テキスト入力（編集時） -->
+      <input type="text" class="path-input" id="pathInput">
+      <!-- ドロップダウンリスト -->
+      <div id="addressDropdown" class="address-dropdown" style="display: none;"></div>
+    </div>
+    <div class="header-status">
+      <button id="toogle-tree">Tree</button>
+      <button id="toogle-preview">Preview</button>
+      <button id="target-folder">📁</button>
+      <button id="config-btn">⚙</button>
+    </div>
+  </header>
+  <div class="app-layout">
+
+    <!-- 左側：フォルダツリー -->
+    <div id="sidebar-tree">
+      <div id="tree-root"></div>
+    </div>
+
+    <div id="sidebar-tree-resizer"></div>
+
+    <!-- 中央：ギャラリー -->
+    <div id="gallery-container">
+      <div id="grid">
+        <div id="gallery-info" class="no-folder">フォルダを選択してください。</div>
+        <button id="reauth-button" class="is-hidden">前回のフォルダに権限付与</button>
+      </div>
+    </div>
+
+    <div id="sidebar-preview-resizer"></div>
+
+    <!-- 右側：プレビュー -->
+    <div id="preview-container">
+      <div id="no-selection" class="placeholder">画像を選択してください</div>
+      <div id="preview-content" style="display: none; flex-direction: column; height: 100%;">
+        <img id="preview-img" src="" alt="Preview" />
+        <video id="preview-video" src="" alt="Preview" controls muted loop preload="metadata"></video>
+        <div id="image-meta-info">
+          <span id="meta-resolution">0 x 0</span>
+          <span id="meta-filesize">0 KB</span>
+        </div>
+        <div id="preview-name"></div>
+        <h3>Prompt</h3>
+        <div id="prompt-display">プロンプトを解析中...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- フル画面表示用のモーダルレイヤー -->
+  <div id="fullscreen-overlay">
+    <div id="fullscreen-content">
+      <img id="fullscreen-img" src="" alt="Full" />
+    </div>
+    <div id="close-fullscreen-btn" class="modal-btn"></div>
+    <div id="prev-btn" class="modal-btn"></div>
+    <div id="next-btn" class="modal-btn"></div>
+  </div>
+
+  <div id="config-overlay">
+    <div id="config-content">
+      <button id="update-db-btn">フォルダ情報の更新</button>
+      <button id="update-db-stop-btn">中断</button>
+      <div id="update-status"></div>
+    </div>
+    <div id="close-config-btn" class="modal-btn"></div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
