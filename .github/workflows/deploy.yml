@@ -1,0 +1,54 @@
+name: Build and Deploy to Pages
+
+on:
+  push:
+    branches: ["main"]
+
+# GitHub Pages へのデプロイに必要な権限を設定
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時デプロイを防ぐ設定（安全策）
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run Build
+        # ViteやNext.jsなどでビルドを実行
+        run: pnpm build
+
+      # ビルド出力先のフォルダを指定してアーティファクト化
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs' 
+
+      # Pages専用サーバーへデプロイ
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
