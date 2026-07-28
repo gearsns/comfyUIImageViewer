@@ -23,7 +23,7 @@ async function computeAllPairsParallel(
 ): Promise<{ i: number; j: number; sim: number }[]> {
     const n = indices.length;
     if (n === 0) return [];
-    
+
     // 次元数（ベクトルの長さ）を取得
     const dim = normFeatures[0].length;
 
@@ -61,7 +61,7 @@ async function computeAllPairsParallel(
 
         // Worker ごとにバッファを複製して転送（Transferable Objects で転送）
         const bufferCopy = matrix.buffer.slice(0);
-        
+
         worker.postMessage({
             startI,
             endI,
