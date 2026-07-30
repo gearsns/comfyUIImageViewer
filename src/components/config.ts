@@ -73,6 +73,7 @@ export function initConfig(initFolder: () => {}) {
             if (worker) {
                 worker.terminate();
             }
+            worker = null;
             updateStatus.textContent = "中断しました";
         } else {
             if (!worker) {

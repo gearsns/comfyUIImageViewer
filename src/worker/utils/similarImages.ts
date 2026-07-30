@@ -13,6 +13,7 @@ export const getSQLInstance = async () => {
 export interface Group {
     group_id: number;
     file_path: string;
+    cnt?: number;
 }
 
 export interface Image {
@@ -49,7 +50,19 @@ export const imageGroups = async (dirHandle: FileSystemDirectoryHandle): Promise
     const groups: Group[] = [];
 
     try {
-        const stmt = db.prepare('SELECT group_id, file_path FROM similar_groups WHERE is_reference=1 ORDER BY group_id')
+        const stmt = db.prepare(`
+SELECT
+    A.cnt,
+    B.group_id,
+    B.file_path
+FROM similar_groups B
+INNER JOIN (
+    SELECT group_id, COUNT(*) AS cnt
+    FROM similar_groups
+    GROUP BY group_id
+) A ON A.group_id = B.group_id
+WHERE B.is_reference = 1
+ORDER BY B.group_id`)
         // 1行ずつオブジェクトとして取得
         while (stmt.step()) {
             const row = stmt.getAsObject() as unknown as Group;

@@ -1,9 +1,9 @@
 import * as Comlink from 'comlink';
 import { pipeline, env } from '@huggingface/transformers';
-import { type ClusteringConfig } from './types';
+import { type ClusteringConfig, type ValidFiles } from './types';
 import { loadResultDb, loadTmpDb, saveResultDb, saveTmpDb } from './utils/sqlite';
 import { scanImageFiles } from './utils/file-system';
-import { clusterFromHighSimilarity, cosineSimilarity, normalizeVector } from './utils/clustering';
+import { cluster, cosineSimilarity, normalizeVector } from './utils/clustering';
 import { store } from '../store';
 import { getMetaDeta } from '../utils/metadataParser';
 
@@ -87,12 +87,7 @@ const api = {
             tmpDb.run("DELETE FROM features_image_cache WHERE file_path = ?", [delPath]);
         }
 
-        const validFiles: {
-            relPath: string;
-            feature: Float32Array;
-            jsonText: string;
-            prompt: string;
-        }[] = [];
+        const validFiles: ValidFiles[] = [];
 
         onStatus?.('DINOv2 モデルをロード中...');
         // DINOv2 ONNXモデルのロード
@@ -182,82 +177,8 @@ const api = {
         }
         tmpDb.close();
         onStatus?.('類似度グループ分け計算中...');
-        const features = validFiles.map((v) => v.feature);
-        const normFeatures = features.map(normalizeVector);
-        const allIndices = validFiles.map((_, idx) => idx);
+        const [groupInfos, normFeatures] = await cluster(validFiles, config.maxMembers, onStatus);
 
-        // 階層クラスタリング＋細分化
-        const groups = await clusterFromHighSimilarity(
-            allIndices,
-            normFeatures,
-            config.maxMembers,
-            onStatus
-        )
-        // ==========================================
-        // 1. 各グループの「代表画像（中心画像）」を決定
-        // (DB保存時のロジックと完全に統一)
-        // ==========================================
-        type GroupInfo = {
-            indices: number[];
-            bestRefIdx: number;
-            bestAvgSim: number;
-        };
-
-        const groupInfos: GroupInfo[] = groups.map((indices) => {
-            if (indices.length <= 1) {
-                return { indices, bestRefIdx: indices[0], bestAvgSim: 1.0 };
-            }
-
-            let bestRefIdx = indices[0];
-            let bestAvgSim = -1;
-
-            for (const i of indices) {
-                let simSum = 0;
-                for (const j of indices) {
-                    simSum += cosineSimilarity(normFeatures[i], normFeatures[j]);
-                }
-                const avgSim = simSum / indices.length;
-                if (avgSim > bestAvgSim) {
-                    bestAvgSim = avgSim;
-                    bestRefIdx = i;
-                }
-            }
-
-            return { indices, bestRefIdx, bestAvgSim };
-        });
-
-        // ==========================================
-        // 2. 代表画像同士の類似度でグループをソート
-        // ==========================================
-        // メンバーが2名以上のグループのみ抽出
-        const validGroupInfos = groupInfos.filter(g => g.indices.length > 1);
-
-        if (validGroupInfos.length > 0) {
-            // 最もメンバー数の多いグループ（＝基準グループ）の代表画像を絶対基準(Anchor)にする
-            // ※枚数が同じ場合は平均類似度が高い方を優先
-            const primaryGroup = [...validGroupInfos].sort((a, b) => {
-                if (b.indices.length !== a.indices.length) {
-                    return b.indices.length - a.indices.length;
-                }
-                return b.bestAvgSim - a.bestAvgSim;
-            })[0];
-
-            const mainAnchorIdx = primaryGroup.bestRefIdx; // ★絶対基準となる代表画像のインデックス
-
-            // メイン代表画像との類似度が高い順にグループを並べ替え
-            groupInfos.sort((a, b) => {
-                // 1人グループ（孤立画像）は一番後ろにする
-                if (a.indices.length <= 1 && b.indices.length > 1) return 1;
-                if (a.indices.length > 1 && b.indices.length <= 1) return -1;
-                if (a.indices.length <= 1 && b.indices.length <= 1) return 0;
-
-                // ★各グループの代表画像と、メイン代表画像との類似度で比較
-                const simA = cosineSimilarity(normFeatures[mainAnchorIdx], normFeatures[a.bestRefIdx]);
-                const simB = cosineSimilarity(normFeatures[mainAnchorIdx], normFeatures[b.bestRefIdx]);
-
-                return simB - simA; // 降順（メイン代表に似ているグループ順）
-            });
-        }
         // 結果のDB格納
         onStatus?.('DB格納中...');
         const resultDb = await loadResultDb(dirHandle);

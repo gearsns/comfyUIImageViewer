@@ -40,7 +40,7 @@ const similarImages = async (
         for (const group of groups) {
             items.push({
                 type: 'dir',
-                name: String(group.group_id),
+                name: `${group.group_id} (${group.cnt})`,
                 relPath: `*similar*/${group.group_id}`,
                 mtime: 0,
                 size: 0,
